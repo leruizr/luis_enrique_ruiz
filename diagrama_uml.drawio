@@ -1,0 +1,55 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" version="26.2.9">
+  <diagram id="UML2" name="UML (guide-note style)">
+    <mxGraphModel dx="5167" dy="3243" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2970" pageHeight="2100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="c2" value="&lt;b&gt;Usuario&lt;/b&gt;&lt;hr&gt;+id:int&lt;br&gt;+nombre:str&lt;br&gt;+rol:str&lt;br&gt;+email:str&lt;br&gt;+telefono:str&lt;br&gt;+zonas_interes:List[int]&lt;br&gt;+permisos:List[str]&lt;br&gt;+parcelas_asignadas:List[int]&lt;br&gt;&lt;hr&gt;+getId(): int&lt;br&gt;+setId(value)&lt;br&gt;+getNombre(): str&lt;br&gt;+setNombre(value)&lt;br&gt;+getRol(): str&lt;br&gt;+setRol(value)&lt;br&gt;+getEmail(): str&lt;br&gt;+setEmail(value)&lt;br&gt;+getTelefono(): str&lt;br&gt;+setTelefono(value)&lt;br&gt;+getZonas_interes(): List[int]&lt;br&gt;+setZonas_interes(value)&lt;br&gt;+getPermisos(): List[str]&lt;br&gt;+setPermisos(value)&lt;br&gt;+getParcelas_asignadas(): List[int]&lt;br&gt;+setParcelas_asignadas(value)&lt;br&gt;&lt;hr&gt;+puede_acceder_parcela(parcela_id:int): bool&lt;br&gt;+asignar_parcela(parcela_id:int): None&lt;br&gt;+obtener_parcelas(): List[int]&lt;div&gt;&lt;br/&gt;&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;spacingTop=8;" parent="1" vertex="1">
+          <mxGeometry x="40" y="-285" width="280" height="465" as="geometry" />
+        </mxCell>
+        <mxCell id="c3" value="&lt;b&gt;Parcela&lt;/b&gt;&lt;hr&gt;+id:int&lt;br&gt;+nombre:str&lt;br&gt;+latitud:float&lt;br&gt;+longitud:float&lt;br&gt;+altitud:float&lt;br&gt;+area_ha:float&lt;br&gt;+descripcion:str&lt;br&gt;+propietario_id:int&lt;br&gt;+suelo:Suelo|None&lt;br&gt;+fuentes_agua:List[FuenteAgua]|None&lt;br&gt;+estaciones:List[EstacionMeteorologica]&lt;br&gt;&lt;hr&gt;+getId(): int&lt;br&gt;+setId(value)&lt;br&gt;+getNombre(): str&lt;br&gt;+setNombre(value)&lt;br&gt;+getLatitud(): float&lt;br&gt;+setLatitud(value)&lt;br&gt;+getLongitud(): float&lt;br&gt;+setLongitud(value)&lt;br&gt;+getAltitud(): float&lt;br&gt;+setAltitud(value)&lt;br&gt;+getArea_ha(): float&lt;br&gt;+setArea_ha(value)&lt;br&gt;+getDescripcion(): str&lt;br&gt;+setDescripcion(value)&lt;br&gt;+getPropietario_id(): int&lt;br&gt;+setPropietario_id(value)&lt;br&gt;&lt;hr&gt;+agregar_estacion(estacion:EstacionMeteorologica): None&lt;br&gt;+remover_estacion(estacion_id:int): None&lt;br&gt;+obtener_datos_clima(): List[Lectura]&lt;br&gt;+obtener_estaciones_activas(): List[EstacionMeteorologica]&lt;div&gt;&lt;br/&gt;&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;spacingTop=8;" parent="1" vertex="1">
+          <mxGeometry x="470" y="-320" width="300" height="540" as="geometry" />
+        </mxCell>
+        <mxCell id="c6" value="&lt;b&gt;EstacionMeteorologica&lt;/b&gt;&lt;hr&gt;+id:int&lt;br&gt;+nombre:str&lt;br&gt;+coordenadas:Coord&lt;br&gt;+altitud:float&lt;br&gt;+activa:bool&lt;br&gt;+sensores:List[Sensor]&lt;br&gt;&lt;hr&gt;+getId(): int&lt;br&gt;+setId(value)&lt;br&gt;+getNombre(): str&lt;br&gt;+setNombre(value)&lt;br&gt;+getCoordenadas(): Coord&lt;br&gt;+setCoordenadas(value)&lt;br&gt;+getAltitud(): float&lt;br&gt;+setAltitud(value)&lt;br&gt;+getActiva(): bool&lt;br&gt;+setActiva(value)&lt;br&gt;&lt;hr&gt;+agregar_sensor(sensor:Sensor): None&lt;br&gt;+remover_sensor(sensor_id:int): None&lt;br&gt;+obtener_sensores_activos(): List[Sensor]&lt;br&gt;+obtener_todas_lecturas(): List[Lectura]&lt;div&gt;&lt;br/&gt;&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;spacingTop=8;" parent="1" vertex="1">
+          <mxGeometry x="440" y="320" width="360" height="380" as="geometry" />
+        </mxCell>
+        <mxCell id="c7" value="&lt;b&gt;Sensor&lt;/b&gt;&lt;hr&gt;+id:int&lt;br&gt;+tipo:str&lt;br&gt;+estacion_id:int&lt;br&gt;+estado:bool&lt;br&gt;&lt;hr&gt;+getId(): int&lt;br&gt;+setId(value)&lt;br&gt;+getTipo(): str&lt;br&gt;+setTipo(value)&lt;br&gt;+getEstacion_id(): int&lt;br&gt;+setEstacion_id(value)&lt;br&gt;+getEstado(): bool&lt;br&gt;+setEstado(value)&lt;br&gt;&lt;hr&gt;+obtener_lectura(): Lectura (abstract)&lt;br&gt;+esta_activo(): bool&lt;div&gt;&lt;br/&gt;&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;spacingTop=8;" parent="1" vertex="1">
+          <mxGeometry y="370" width="300" height="280" as="geometry" />
+        </mxCell>
+        <mxCell id="c8" value="&lt;b&gt;SensorTemperatura&lt;/b&gt;&lt;hr/&gt;+unidad:str&lt;br/&gt;+rango_max:float&lt;br/&gt;+rango_min:float&lt;br/&gt;&lt;hr/&gt;+getUnidad(): str&lt;br/&gt;+setUnidad(value)&lt;br/&gt;+getRango_max(): float&lt;br/&gt;+setRango_max(value)&lt;br/&gt;+getRango_min(): float&lt;br/&gt;+setRango_min(value)&lt;br/&gt;&lt;hr/&gt;+validar_rango(valor:float): bool&lt;br/&gt;+obtener_lectura(): Lectura&lt;br/&gt;" style="rounded=0;whiteSpace=wrap;html=1;spacingTop=8;" parent="1" vertex="1">
+          <mxGeometry x="-340" y="760" width="260" height="250" as="geometry" />
+        </mxCell>
+        <mxCell id="c9" value="&lt;b&gt;SensorHumedad&lt;/b&gt;&lt;hr/&gt;+tipo_humedad:str&lt;br/&gt;+fecha_calibracion:date&lt;br/&gt;&lt;hr/&gt;+getTipo_humedad(): str&lt;br/&gt;+setTipo_humedad(value)&lt;br/&gt;+getFecha_calibracion(): date&lt;br/&gt;+setFecha_calibracion(value)&lt;br/&gt;&lt;hr/&gt;+validar_rango(valor:float): bool&lt;br/&gt;+obtener_lectura(): Lectura&lt;br/&gt;" style="rounded=0;whiteSpace=wrap;html=1;spacingTop=8;" parent="1" vertex="1">
+          <mxGeometry x="20" y="760" width="260" height="210" as="geometry" />
+        </mxCell>
+        <mxCell id="c10" value="&lt;b&gt;SensorPrecipitacion&lt;/b&gt;&lt;hr/&gt;+tipo_medidor:str&lt;br/&gt;+area_captacion:float&lt;br/&gt;&lt;hr/&gt;+getTipo_medidor(): str&lt;br/&gt;+setTipo_medidor(value)&lt;br/&gt;+getArea_captacion(): float&lt;br/&gt;+setArea_captacion(value)&lt;br/&gt;&lt;hr/&gt;+validar_rango(valor:float): bool&lt;br/&gt;+obtener_lectura(): Lectura&lt;br/&gt;" style="rounded=0;whiteSpace=wrap;html=1;spacingTop=8;" parent="1" vertex="1">
+          <mxGeometry x="360" y="760" width="280" height="210" as="geometry" />
+        </mxCell>
+        <mxCell id="c11" value="&lt;b&gt;Lectura&lt;/b&gt;&lt;hr&gt;+valor:float&lt;br&gt;+fecha_hora:datetime&lt;br&gt;+sensor_id:int&lt;br&gt;&lt;hr&gt;+getValor(): float&lt;br&gt;+setValor(value)&lt;br&gt;+getFecha_hora(): datetime&lt;br&gt;+setFecha_hora(value)&lt;br&gt;+getSensor_id(): int&lt;br&gt;+setSensor_id(value)&lt;br&gt;&lt;hr&gt;" style="rounded=0;whiteSpace=wrap;html=1;spacingTop=8;" parent="1" vertex="1">
+          <mxGeometry x="-330" y="412.5" width="220" height="195" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" value="gestiona" style="endArrow=block;html=1;" parent="1" source="c2" target="c3" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" value="contiene" style="endArrow=block;html=1;" parent="1" source="c3" target="c6" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" value="contiene" style="endArrow=block;html=1;" parent="1" source="c6" target="c7" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" value="genera" style="endArrow=block;html=1;" parent="1" source="c7" target="c11" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e7" value="" style="endArrow=block;endFill=0;dashed=1;html=1;" parent="1" source="c8" target="c7" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e8" value="" style="endArrow=block;endFill=0;dashed=1;html=1;" parent="1" source="c9" target="c7" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e9" value="" style="endArrow=block;endFill=0;dashed=1;html=1;" parent="1" source="c10" target="c7" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
