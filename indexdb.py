@@ -1,9 +1,11 @@
 import sqlite3
+import os
 import tkinter as tk
 from tkinter import messagebox
 from tkinter import ttk
 
-DB_NAME = r"D:\4. UNAD//meteorologiadb.db"
+# Base de datos dentro de la carpeta del proyecto (requisito 8)
+DB_NAME = os.path.join(os.path.dirname(__file__), "meteorologiadb.db")
 
 # ==============================================
 # CONEXIÓN Y CREACIÓN DE BASE DE DATOS / TABLAS
@@ -237,6 +239,7 @@ class AppCRUD:
         ttk.Button(btns, text="Actualizar", command=self._actualizar).pack(side=tk.LEFT, padx=4)
         ttk.Button(btns, text="Borrar", command=self._borrar).pack(side=tk.LEFT, padx=4)
         ttk.Button(btns, text="Limpiar", command=self._limpiar).pack(side=tk.LEFT, padx=4)
+        ttk.Button(btns, text="Generar informe", command=self._generar_informe).pack(side=tk.LEFT, padx=12)
 
         # Listado
         row += 1
@@ -253,15 +256,32 @@ class AppCRUD:
         # ID seleccionado
         self._selected_id = None
 
+        # Barra de estado inferior
+        self.status = tk.StringVar(value="Listo")
+        status_bar = ttk.Label(self.root, textvariable=self.status, anchor="w")
+        status_bar.pack(fill=tk.X, side=tk.BOTTOM)
+
     def _load_estaciones(self):
         estaciones = self.estacion_manager.listar(self.conn)
         if not estaciones:
             # Crea una estación por defecto si no hay
             cur = self.conn.cursor()
+            # Asegurar que exista una parcela por defecto (id) para la FK
+            cur.execute("SELECT id FROM parcela ORDER BY id LIMIT 1;")
+            row = cur.fetchone()
+            if row:
+                parcela_id = row[0]
+            else:
+                # crear parcela por defecto y usar su id
+                cur.execute("INSERT INTO parcela (nombre, latitud, longitud, altitud, area_ha, descripcion, propietario_id) VALUES (?,?,?,?,?,?,?)", 
+                            ("Parcela Default", 6.25, -75.57, 1500, 1.0, "Parcela creada por la app", None))
+                parcela_id = cur.lastrowid
+                self.conn.commit()
+
             cur.execute("""INSERT INTO estacion_meteorologica
                            (nombre, latitud, longitud, altitud, activa, capacidad_registro, parcela_id)
                            VALUES (?,?,?,?,?,?,?)""",
-                        ("Estación Centro", 6.25, -75.57, 1500, 1, 100, 1))
+                        ("Estación Centro", 6.25, -75.57, 1500, 1, 100, parcela_id))
             self.conn.commit()
             estaciones = self.estacion_manager.listar(self.conn)
 
@@ -284,6 +304,11 @@ class AppCRUD:
                      f"| rango=({r['rango_min']},{r['rango_max']}) | estado={r['estado']} "
                      f"| estacion_id={r['estacion_id']} ({r['estacion']})")
             self.sensor_list.insert(tk.END, linea)
+        # estado
+        try:
+            self.status.set(f"Sensores cargados: {len(registros)}")
+        except Exception:
+            pass
 
     def _leer_estado_cb(self):
         sel = self.estado_cb.get()
@@ -396,6 +421,122 @@ class AppCRUD:
             # En caso de formato inesperado, simplemente ignora
             pass
 
+    # ------------------------
+    # Reporte (datos + gráfico)
+    # ------------------------
+    def _generar_informe(self):
+        try:
+            cur = self.conn.cursor()
+            # Estadísticas por tipo de sensor
+            cur.execute("SELECT tipo, COUNT(*) FROM sensor GROUP BY tipo ORDER BY tipo;")
+            por_tipo = cur.fetchall()
+
+            # Sensores por estación
+            cur.execute(
+                """
+                SELECT e.nombre, COUNT(s.id) AS total
+                  FROM estacion_meteorologica e
+             LEFT JOIN sensor s ON s.estacion_id = e.id
+              GROUP BY e.id
+              ORDER BY e.nombre
+                """
+            )
+            por_estacion = cur.fetchall()
+
+            # Lecturas por tipo de sensor
+            cur.execute(
+                """
+                SELECT s.tipo, COUNT(l.id) AS n
+                  FROM sensor s LEFT JOIN lectura l ON l.sensor_id = s.id
+              GROUP BY s.tipo
+              ORDER BY s.tipo
+                """
+            )
+            lecturas_por_tipo = cur.fetchall()
+
+            # Construir HTML con SVG de barras (sin librerías externas)
+            html_path = os.path.join(os.path.dirname(__file__), "informe.html")
+
+            def svg_barras(tuplas, titulo):
+                if not tuplas:
+                    return f"<h3>{titulo}</h3><p>Sin datos para mostrar.</p>"
+                etiquetas = [str(t[0]) for t in tuplas]
+                valores = [int(t[1]) for t in tuplas]
+                max_v = max(valores) or 1
+                ancho, alto, margen = 600, 220, 30
+                escala = (alto - 2*margen) / max_v
+                barras = []
+                sep = (ancho - 2*margen) / max(1, len(valores))
+                for i, v in enumerate(valores):
+                    x = margen + i*sep + 8
+                    bh = v * escala
+                    y = alto - margen - bh
+                    barras.append(f'<rect x="{x}" y="{y}" width="{max(10, sep-16):.1f}" height="{bh:.1f}" fill="#4e79a7" />')
+                    barras.append(f'<text x="{x + max(10, sep-16)/2:.1f}" y="{y-4:.1f}" font-size="10" text-anchor="middle">{v}</text>')
+                    barras.append(f'<text x="{x + max(10, sep-16)/2:.1f}" y="{alto - margen + 12}" font-size="10" text-anchor="middle">{etiquetas[i]}</text>')
+                svg = f"""
+                <h3>{titulo}</h3>
+                <svg width="{ancho}" height="{alto}" role="img" aria-label="{titulo}">
+                  <line x1="{margen}" y1="{alto-margen}" x2="{ancho-margen}" y2="{alto-margen}" stroke="#333" />
+                  <line x1="{margen}" y1="{margen}" x2="{margen}" y2="{alto-margen}" stroke="#333" />
+                  {''.join(barras)}
+                </svg>
+                """
+                return svg
+
+            html = """
+            <!doctype html>
+            <html lang=\"es\">
+            <head>
+              <meta charset=\"utf-8\">
+              <title>Informe de Sensores y Lecturas</title>
+              <style>
+                body { font-family: Arial, sans-serif; margin: 20px; }
+                h1 { margin-top: 0; }
+                table { border-collapse: collapse; margin: 10px 0; }
+                th, td { border: 1px solid #ccc; padding: 6px 10px; }
+              </style>
+            </head>
+            <body>
+              <h1>Informe de Sensores y Lecturas</h1>
+            """
+
+            html += svg_barras(por_tipo, "Sensores por tipo")
+            html += svg_barras(por_estacion, "Sensores por estación")
+            html += svg_barras(lecturas_por_tipo, "Lecturas por tipo de sensor")
+
+            # Tabla de sensores
+            cur.execute(
+                """
+                SELECT s.id, s.tipo, s.unidad, s.precision, e.nombre AS estacion
+                  FROM sensor s JOIN estacion_meteorologica e ON e.id = s.estacion_id
+                 ORDER BY s.id
+                """
+            )
+            filas = cur.fetchall()
+            html += "<h3>Listado de sensores</h3>"
+            html += "<table><thead><tr><th>ID</th><th>Tipo</th><th>Unidad</th><th>Precisión</th><th>Estación</th></tr></thead><tbody>"
+            for fid, tipo, unidad, prec, est in filas:
+                html += f"<tr><td>{fid}</td><td>{tipo}</td><td>{unidad}</td><td>{prec}</td><td>{est}</td></tr>"
+            html += "</tbody></table>"
+
+            html += "</body></html>"
+
+            with open(html_path, "w", encoding="utf-8") as f:
+                f.write(html)
+
+            messagebox.showinfo("Informe", f"Informe generado: {html_path}")
+            try:
+                self.status.set("Informe generado correctamente")
+            except Exception:
+                pass
+        except Exception as e:
+            messagebox.showerror("Error", f"No se pudo generar el informe: {e}")
+            try:
+                self.status.set("Error al generar el informe")
+            except Exception:
+                pass
+
 if __name__ == "__main__":
     # Asegurar BD
     crear_bd()
@@ -404,3 +545,45 @@ if __name__ == "__main__":
     root = tk.Tk()
     app = AppCRUD(root)
     root.mainloop()
+
+# ----------------------------------------------
+# Pruebas de software (comentadas) - Requisito 6
+# ----------------------------------------------
+# Para ejecutar estas pruebas rápidas, descomente los bloques "assert" y ejecute el script.
+# No requieren librerías externas, sólo crearán/usaràn la BD local.
+#
+# from contextlib import closing
+# def _run_small_tests():
+#     crear_bd()
+#     with closing(create_connection()) as con:
+#         sm = SensorManager()
+#         em = EstacionManager()
+#         ests = em.listar(con)
+#         if not ests:
+#             # Forzar estación por defecto si no existe
+#             cur = con.cursor()
+#             cur.execute("INSERT INTO parcela (nombre, latitud, longitud, altitud, area_ha, descripcion) VALUES (?,?,?,?,?,?)",
+#                         ("Test", 0.0, 0.0, None, None, ""))
+#             parcela_id = cur.lastrowid
+#             cur.execute("INSERT INTO estacion_meteorologica (nombre, latitud, longitud, parcela_id) VALUES (?,?,?,?)",
+#                         ("Test Est", 0.0, 0.0, parcela_id))
+#             con.commit()
+#             est_id = cur.lastrowid
+#         else:
+#             est_id = ests[0][0]
+#         # Crear
+#         sm.guardar(con, "temperatura", "C", 0.1, None, None, 1, est_id)
+#         filas = sm.leer(con)
+#         assert any(f["tipo"] == "temperatura" for f in filas)
+#         new_id = max(f["id"] for f in filas)
+#         # Actualizar
+#         sm.actualizar(con, new_id, "temperatura", "C", 0.5, None, None, 1, est_id)
+#         filas = sm.leer(con)
+#         assert any(f["id"] == new_id and float(f["precision"]) == 0.5 for f in filas)
+#         # Borrar
+#         ok = sm.borrar(con, new_id)
+#         assert ok is True
+#         print("Pruebas CRUD Sensor: OK")
+#
+# if __name__ == "__main__":
+#     _run_small_tests()

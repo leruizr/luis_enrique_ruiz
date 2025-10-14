@@ -1,6 +1,7 @@
 import sqlite3
+import os
 
-DB_NAME = "D://4. UNAD//meteorologiadb.db"
+DB_NAME = os.path.join(os.path.dirname(__file__), "meteorologiadb.db")
 
 # ==============================
 # CREAR BASE DE DATOS Y TABLAS
