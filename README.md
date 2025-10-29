@@ -52,3 +52,53 @@ Pruebas
 Notas
 - No se requieren librerías externas para los gráficos; el informe es HTML con SVG.
 - Abra `informe.html` con cualquier navegador.
+
+
+
+
+
+
+
+Soporte Técnico (Chat TCP)
+==========================
+
+Objetivo
+--------
+Permitir comunicación en tiempo real entre un usuario (cliente) y un operador de soporte técnico (servidor) desde la misma computadora, usando sockets TCP y dos terminales diferentes.
+
+Archivos nuevos
+---------------
+- servidor.py        -> Servidor de soporte técnico (TCP 127.0.0.1:5050)
+- cliente_chat.py    -> Cliente de chat (NickName + chat concurrente)
+
+Cómo ejecutarlo (consola)
+------------------------
+1) Abrir una primera terminal y ejecutar:
+   python servidor.py
+
+   - Si el puerto está ocupado o el servidor no puede iniciar, mostrará un error.
+   - Comandos del operador del servidor:
+     /usuarios  -> lista de clientes conectados
+     /salir     -> cierre limpio del servidor
+   - El operador puede escribir mensajes (aparecen con prefijo [SOPORTE]).
+
+2) Abrir otra terminal y ejecutar:
+   python cliente_chat.py
+
+   - Ingresar un NickName cuando lo solicite.
+   - Escribir mensajes para chatear. Comando disponible:
+     /salir -> cerrar la conexión.
+   - Si el servidor no está disponible, muestra:
+     "El soporte técnico no se encuentra activo en este momento".
+
+Integración con main.py (menú gráfico)
+--------------------------------------
+- 7) SOPORTE_TECNICO (inicia servidor y 2 chats)
+  Inicia el servidor (si no está corriendo) y abre dos ventanas de
+  cliente para probar la comunicación desde el mismo PC.
+
+Notas de prueba
+---------------
+- Se pueden ejecutar múltiples clientes simultáneamente desde el mismo PC.
+- El servidor reenvía mensajes de usuarios con prefijo [usuario] y del
+  operador con prefijo [SOPORTE].

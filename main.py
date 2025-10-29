@@ -1,9 +1,7 @@
-"""
-Módulo principal con interfaz gráfica del menú METEOROL.
-Muestra el mismo menú de la versión en consola, pero en Tkinter.
-"""
-
 from datetime import date
+import subprocess
+import sys
+import os
 import tkinter as tk
 from tkinter import messagebox, simpledialog
 
@@ -104,6 +102,28 @@ class MenuGUI:
             self.root, text=menu_txt, justify="left", anchor="w", font=("Consolas", 10)
         )
         lbl.pack(fill=tk.X, padx=12, pady=8)
+        lbl2 = tk.Label(
+            self.root,
+            text=(
+                "7) Iniciar/Detener servidor de soporte técnico\n"
+                "8) chat_soporte_tecnico (cliente)"
+            ),
+            justify="left",
+            anchor="w",
+            font=("Consolas", 10),
+        )
+        lbl2.pack(fill=tk.X, padx=12, pady=(0, 8))
+        # Ajuste de texto: una sola opción de soporte técnico
+        try:
+            lbl2.config(text="7) soporte_tecnico (inicia servidor y 2 chats)")
+        except Exception:
+            pass
+        # Simplificación: un único label con todas las opciones
+        try:
+            lbl2.destroy()
+        except Exception:
+            pass
+        lbl.config(text=menu_txt + "\n7) soporte_tecnico (inicia servidor y 2 chats)")
 
         # Botones de acciones
         btns = tk.Frame(self.root)
@@ -136,9 +156,17 @@ class MenuGUI:
             width=42,
             command=self.remover_sensor,
         ).pack(anchor="w", pady=4)
+        tk.Button(
+            btns,
+            text="7) soporte tecnico (iniciar)",
+            width=42,
+            command=self.soporte_tecnico,
+        ).pack(anchor="w", pady=4)
         tk.Button(btns, text="0) Salir", width=42, command=self.root.destroy).pack(
             anchor="w", pady=4
         )
+        # Proceso del servidor (si se abre en consola separada)
+        self._server_proc = None
 
     def ver_usuario(self):
         messagebox.showinfo("Usuario", str(self.user))
@@ -209,9 +237,77 @@ class MenuGUI:
         except Exception as e:
             messagebox.showerror("Error", str(e))
 
+    def toggle_servidor_soporte(self):
+        try:
+            # Si el proceso existe y sigue activo, se detiene
+            if self._server_proc is not None and getattr(self._server_proc, "poll", lambda: None)() is None:
+                try:
+                    self._server_proc.terminate()
+                except Exception:
+                    pass
+                self._server_proc = None
+                messagebox.showinfo("Servidor", "Servidor de soporte detenido.")
+                return
+
+            # Iniciar servidor en nueva consola para permitir entrada del operador
+            py = sys.executable or "python"
+            creationflags = getattr(subprocess, "CREATE_NEW_CONSOLE", 0)
+            self._server_proc = subprocess.Popen(
+                [py, "servidor.py"],
+                creationflags=creationflags,
+                cwd=os.getcwd(),
+            )
+            messagebox.showinfo(
+                "Servidor",
+                "Servidor de soporte iniciado en una nueva consola.\nUse /usuarios y /salir allí.",
+            )
+        except FileNotFoundError:
+            messagebox.showerror("Error", "No se encontró servidor.py")
+        except Exception as e:
+            messagebox.showerror("Error", f"No se pudo iniciar/detener: {e}")
+
+    def abrir_cliente_chat(self):
+        try:
+            py = sys.executable or "python"
+            creationflags = getattr(subprocess, "CREATE_NEW_CONSOLE", 0)
+            subprocess.Popen(
+                [py, "cliente_chat.py"],
+                creationflags=creationflags,
+                cwd=os.getcwd(),
+            )
+        except FileNotFoundError:
+            messagebox.showerror("Error", "No se encontró cliente_chat.py")
+        except Exception as e:
+            messagebox.showerror("Error", f"No se pudo abrir el cliente: {e}")
+
+
+    def soporte_tecnico(self):
+        try:
+            py = sys.executable or "python"
+            creationflags = getattr(subprocess, "CREATE_NEW_CONSOLE", 0)
+
+            # Iniciar servidor si no está corriendo
+            if self._server_proc is None or getattr(self._server_proc, "poll", lambda: 1)() is not None:
+                self._server_proc = subprocess.Popen(
+                    [py, "servidor.py"],
+                    creationflags=creationflags,
+                    cwd=os.getcwd(),
+                )
+
+            # Abrir dos clientes para pruebas locales
+            subprocess.Popen([py, "cliente_chat.py"], creationflags=creationflags, cwd=os.getcwd())
+            subprocess.Popen([py, "cliente_chat.py"], creationflags=creationflags, cwd=os.getcwd())
+
+            messagebox.showinfo(
+                "Soporte técnico",
+                "Servidor iniciado (si no lo estaba) y se abrieron 2 clientes.",
+            )
+        except FileNotFoundError as e:
+            messagebox.showerror("Error", f"Archivo no encontrado: {e}")
+        except Exception as e:
+            messagebox.showerror("Error", f"No se pudo iniciar soporte técnico: {e}")
 
 if __name__ == "__main__":
     root = tk.Tk()
     app = MenuGUI(root)
     root.mainloop()
-
