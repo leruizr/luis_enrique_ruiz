@@ -102,3 +102,12 @@ Notas de prueba
 - Se pueden ejecutar múltiples clientes simultáneamente desde el mismo PC.
 - El servidor reenvía mensajes de usuarios con prefijo [usuario] y del
   operador con prefijo [SOPORTE].
+
+  
+Laberinto (Pygame)
+==================
+- Requisitos: Python 3.8+ y tener `pygame` instalado (`pip install pygame`).
+- Ejecutar solo el minijuego desde consola: `python laberinto.py`.
+- Desde la app principal: `python main.py` y en la ventana elegir **7) Jugar laberinto (Pygame)**; al cerrar el juego vuelves al menu.
+- Controles: flechas de direccion para moverte desde **S** (entrada) hasta **E** (salida).
+- Objetivo: llegar a la salida; al lograrlo se muestra el tiempo empleado y luego la ventana se cierra.
