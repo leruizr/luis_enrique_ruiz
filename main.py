@@ -13,6 +13,7 @@ from sensores import (
     SensorHumedad,
     SensorPrecipitacion,
 )
+from laberinto import jugar_laberinto
 
 
 def demo_datos():
@@ -123,7 +124,11 @@ class MenuGUI:
             lbl2.destroy()
         except Exception:
             pass
-        lbl.config(text=menu_txt + "\n7) soporte_tecnico (inicia servidor y 2 chats)")
+        lbl.config(
+            text=menu_txt
+            + "\n7) Jugar laberinto (Pygame)"
+            + "\n8) soporte_tecnico (inicia servidor y 2 chats)"
+        )
 
         # Botones de acciones
         btns = tk.Frame(self.root)
@@ -158,7 +163,13 @@ class MenuGUI:
         ).pack(anchor="w", pady=4)
         tk.Button(
             btns,
-            text="7) soporte tecnico (iniciar)",
+            text="7) Jugar laberinto (Pygame)",
+            width=42,
+            command=self.abrir_laberinto,
+        ).pack(anchor="w", pady=4)
+        tk.Button(
+            btns,
+            text="8) soporte tecnico (iniciar)",
             width=42,
             command=self.soporte_tecnico,
         ).pack(anchor="w", pady=4)
@@ -279,6 +290,17 @@ class MenuGUI:
             messagebox.showerror("Error", "No se encontró cliente_chat.py")
         except Exception as e:
             messagebox.showerror("Error", f"No se pudo abrir el cliente: {e}")
+
+    def abrir_laberinto(self):
+        """Inicia el minijuego del laberinto y devuelve el control al menu al salir."""
+        try:
+            # Ocultamos temporalmente la ventana de Tk para evitar superposición.
+            self.root.withdraw()
+            jugar_laberinto()
+        except Exception as e:
+            messagebox.showerror("Error", f"No se pudo iniciar el laberinto: {e}")
+        finally:
+            self.root.deiconify()
 
 
     def soporte_tecnico(self):
